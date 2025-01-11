@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot con Voz</title>
+    <title>Chatbot Avanzado</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,50 +76,55 @@
     </div>
 
     <script>
-        // Procesamiento de entrada del usuario
-        function sendMessage() {
-            const userInput = document.getElementById("userInput").value.trim();
-            if (userInput === "") return;
-
-            addMessage("user", userInput);
-            processResponse(userInput);
-            document.getElementById("userInput").value = "";
-        }
-
-        // Procesar respuesta del bot
-        function processResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            let response;
-
-            // Procesamiento básico para interpretar la pregunta
-            if (lowerMessage.includes("lugar") && lowerMessage.includes("nacimiento")) {
-                response = "Mi lugar de nacimiento es Loja.";
-            } else if (lowerMessage.includes("producto") && lowerMessage.includes("favorito")) {
-                response = "Mi producto favorito es Coca Cola.";
-            } else {
-                response = "Lo siento, no entiendo la pregunta. Intente preguntar sobre mi lugar de nacimiento o producto favorito.";
-            }
-
-            addMessage("bot", response);
-            speakResponse(response);
-        }
-
-        // Agregar mensaje al historial
+        // Agrega un mensaje al historial
         function addMessage(sender, text) {
             const messages = document.getElementById("messages");
             const messageDiv = document.createElement("div");
             messageDiv.className = sender;
             messageDiv.textContent = text;
             messages.appendChild(messageDiv);
-            messages.scrollTop = messages.scrollHeight;
+            messages.scrollTop = messages.scrollHeight; // Auto-scroll al final
         }
 
-        // Respuesta de voz
-        function speakResponse(text) {
+        // Procesa las preguntas del usuario
+        function processMessage(message) {
+            const lowerMessage = message.toLowerCase();
+
+            // Define patrones para comprender las preguntas
+            const patterns = [
+                { keywords: ["lugar", "nacimiento", "naciste"], response: "Mi lugar de nacimiento es Loja." },
+                { keywords: ["producto", "favorito", "bebida"], response: "Mi producto favorito es Coca Cola." },
+                { keywords: ["hola", "buenos días", "buenas tardes"], response: "¡Hola! ¿En qué puedo ayudarte?" },
+                { keywords: ["gracias", "muchas gracias"], response: "¡De nada! Estoy aquí para ayudarte." }
+            ];
+
+            for (const pattern of patterns) {
+                if (pattern.keywords.some(keyword => lowerMessage.includes(keyword))) {
+                    return pattern.response;
+                }
+            }
+
+            return "Lo siento, no entiendo la pregunta. Por favor, intente preguntar sobre mi lugar de nacimiento o producto favorito.";
+        }
+
+        // Habla una respuesta utilizando la API SpeechSynthesis
+        function speakMessage(text) {
             const synth = window.speechSynthesis;
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = "es-ES";
             synth.speak(utterance);
+        }
+
+        // Enviar mensaje del usuario y generar respuesta
+        function sendMessage() {
+            const userInput = document.getElementById("userInput").value.trim();
+            if (!userInput) return;
+
+            addMessage("user", userInput); // Mostrar mensaje del usuario
+            const response = processMessage(userInput); // Procesar respuesta
+            addMessage("bot", response); // Mostrar respuesta del bot
+            speakMessage(response); // Hablar la respuesta
+            document.getElementById("userInput").value = ""; // Limpiar el campo de texto
         }
 
         // Reconocimiento de voz
@@ -135,7 +140,9 @@
             recognition.onresult = (event) => {
                 const userMessage = event.results[0][0].transcript;
                 addMessage("user", userMessage);
-                processResponse(userMessage);
+                const response = processMessage(userMessage);
+                addMessage("bot", response);
+                speakMessage(response);
             };
 
             recognition.onerror = () => {
