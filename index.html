@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Simple</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .chat-container {
+            width: 400px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .messages div {
+            margin-bottom: 10px;
+        }
+        .user {
+            text-align: right;
+            color: blue;
+        }
+        .bot {
+            text-align: left;
+            color: green;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .input-container button {
+            padding: 10px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .input-container button:hover {
+            background-color: darkblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Escriba su mensaje..." />
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById("userInput").value.trim();
+            const messages = document.getElementById("messages");
+
+            if (userInput === "") return;
+
+            // Agregar mensaje del usuario
+            const userMessage = document.createElement("div");
+            userMessage.className = "user";
+            userMessage.textContent = userInput;
+            messages.appendChild(userMessage);
+
+            // Generar respuesta del bot
+            const botMessage = document.createElement("div");
+            botMessage.className = "bot";
+
+            if (userInput.toLowerCase().includes("lugar de nacimiento")) {
+                botMessage.textContent = "Mi lugar de nacimiento es Loja.";
+            } else if (userInput.toLowerCase().includes("producto favorito")) {
+                botMessage.textContent = "Mi producto favorito es Coca Cola.";
+            } else {
+                botMessage.textContent = "Lo siento, no entiendo la pregunta. Intente preguntar sobre mi lugar de nacimiento o producto favorito.";
+            }
+
+            messages.appendChild(botMessage);
+
+            // Desplazar al final
+            messages.scrollTop = messages.scrollHeight;
+
+            // Limpiar input
+            document.getElementById("userInput").value = "";
+        }
+    </script>
+</body>
+</html>
