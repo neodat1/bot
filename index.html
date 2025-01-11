@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Simple</title>
+    <title>Chatbot con Voz</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -69,43 +69,80 @@
     <div class="chat-container">
         <div class="messages" id="messages"></div>
         <div class="input-container">
-            <input type="text" id="userInput" placeholder="Escriba su mensaje..." />
+            <input type="text" id="userInput" placeholder="Escriba su mensaje o use el micrófono..." />
             <button onclick="sendMessage()">Enviar</button>
+            <button onclick="startRecognition()">🎤</button>
         </div>
     </div>
 
     <script>
+        // Procesamiento de entrada del usuario
         function sendMessage() {
             const userInput = document.getElementById("userInput").value.trim();
-            const messages = document.getElementById("messages");
-
             if (userInput === "") return;
 
-            // Agregar mensaje del usuario
-            const userMessage = document.createElement("div");
-            userMessage.className = "user";
-            userMessage.textContent = userInput;
-            messages.appendChild(userMessage);
+            addMessage("user", userInput);
+            processResponse(userInput);
+            document.getElementById("userInput").value = "";
+        }
 
-            // Generar respuesta del bot
-            const botMessage = document.createElement("div");
-            botMessage.className = "bot";
+        // Procesar respuesta del bot
+        function processResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            let response;
 
-            if (userInput.toLowerCase().includes("lugar de nacimiento")) {
-                botMessage.textContent = "Mi lugar de nacimiento es Loja.";
-            } else if (userInput.toLowerCase().includes("producto favorito")) {
-                botMessage.textContent = "Mi producto favorito es Coca Cola.";
+            // Procesamiento básico para interpretar la pregunta
+            if (lowerMessage.includes("lugar") && lowerMessage.includes("nacimiento")) {
+                response = "Mi lugar de nacimiento es Loja.";
+            } else if (lowerMessage.includes("producto") && lowerMessage.includes("favorito")) {
+                response = "Mi producto favorito es Coca Cola.";
             } else {
-                botMessage.textContent = "Lo siento, no entiendo la pregunta. Intente preguntar sobre mi lugar de nacimiento o producto favorito.";
+                response = "Lo siento, no entiendo la pregunta. Intente preguntar sobre mi lugar de nacimiento o producto favorito.";
             }
 
-            messages.appendChild(botMessage);
+            addMessage("bot", response);
+            speakResponse(response);
+        }
 
-            // Desplazar al final
+        // Agregar mensaje al historial
+        function addMessage(sender, text) {
+            const messages = document.getElementById("messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = sender;
+            messageDiv.textContent = text;
+            messages.appendChild(messageDiv);
             messages.scrollTop = messages.scrollHeight;
+        }
 
-            // Limpiar input
-            document.getElementById("userInput").value = "";
+        // Respuesta de voz
+        function speakResponse(text) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "es-ES";
+            synth.speak(utterance);
+        }
+
+        // Reconocimiento de voz
+        function startRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "es-ES";
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                addMessage("bot", "Estoy escuchando...");
+            };
+
+            recognition.onresult = (event) => {
+                const userMessage = event.results[0][0].transcript;
+                addMessage("user", userMessage);
+                processResponse(userMessage);
+            };
+
+            recognition.onerror = () => {
+                addMessage("bot", "Lo siento, no pude escuchar. Intente de nuevo.");
+            };
+
+            recognition.start();
         }
     </script>
 </body>
